@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from pyspark.sql import SparkSession
 from pyspark import SparkConf
 from pyspark.sql import SparkSession
@@ -241,6 +242,9 @@ def get_metrics(df_with_nodes_shifts):
 
 
 if __name__=="__main__":
+
+
+    
         
     # Create a Spark session configured with the necessary Kafka package
     spark = SparkSession.builder.appName("KafkaSparkSQLBatch").config("spark.jars.packages", 
@@ -253,52 +257,41 @@ if __name__=="__main__":
 
     final_df_with_nodes_shifts=assign_shift(final_df_with_nodes,final_df_turnos)
 
-    #Se va a guardar un solo diía de los datos batch ya que el cluster no es capaz de asimilar todos los datos a la vez.
-
      # Obtener el timestamp actual
     current_time = F.current_timestamp()
-
     
     # Calcular las 02:00 AM del día actual
     start_of_day = F.date_trunc('day', current_time)
-    three_am_today = start_of_day + F.expr('INTERVAL 3 HOURS')
+    two_am_today = start_of_day + F.expr('INTERVAL 2 HOURS')
     
-    # Si es después de las 02:00 AM, usar el timestamp de las 03:00 AM de hoy
-    # Si es antes, usar el timestamp de las 03:00 AM del día anterior
-    cutoff_time = F.when(current_time >= three_am_today, three_am_today).otherwise(start_of_day - F.expr('INTERVAL 21 HOURS'))
+    # Si es después de las 02:00 AM, usar el timestamp de las 02:00 AM de hoy
+    # Si es antes, usar el timestamp de las 02:00 AM del día anterior
+    cutoff_time = F.when(current_time >= two_am_today, two_am_today).otherwise(start_of_day - F.expr('INTERVAL 22 HOURS'))
     
-    # Filtrar por las últimas 24 horas hasta las 03:00 AM
+    # Filtrar por las últimas 24 horas hasta las 02:00 AM
     filtered_df = final_df_with_nodes_shifts.filter((final_df_with_nodes_shifts['fecha'] < cutoff_time) & (final_df_with_nodes_shifts['fecha'] >= (cutoff_time - F.expr('INTERVAL 24 HOURS'))))
     
     metrics_df=get_metrics(filtered_df)
 
-    #metrics_df.show(40,False)
+    """
+    # Comprobación de que carga la fecha y nodo respectivas
+    fecha="2024-03-30T11:00"
+    nodo="edge01"
+    
+    example_df = metrics_df.filter(
+        (metrics_df.fecha == fecha) & (metrics_df.nodo == nodo)
+    )
+
+    example_df.show(10,False)
+
+    """
     
     #Conexion HDFS
     hdfs_path = "/datos/arq-lambda/datos-g2/agg_metrics.parquet"
 
     # Write the DataFrame to HDFS in Parquet format
-    metrics_df.write.mode("overwrite").parquet(hdfs_path)
+    metrics_df.write.mode("append").parquet(hdfs_path)
     
-
-    
-    
-    
-        
-    
-    
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    # close spark session
+    spark.stop()
 
