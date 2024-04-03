@@ -49,9 +49,9 @@ Example of the resulting assignments for one node:
 
 Retrieves the data previously stored from the respective databases and shows the assignments done for a specific node and date
 
-+ Execution command for real-time testing: python3 run_rt_test.py worker01 2024-03-20T22:40
++ Execution command for real-time testing: python3 run_rt_test.py worker01 2024-03-20T22:00
   
-+ Script for batch processing:  python3 run_batch_test.py worker01 2024-03-20T22:40 
++ Script for batch processing:  python3 run_batch_test.py worker01 2024-03-20T22:00
 
 
 
