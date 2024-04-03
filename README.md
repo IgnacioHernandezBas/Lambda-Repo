@@ -54,6 +54,64 @@ Retrieves the data previously stored from the respective databases and shows the
 + Script for batch processing:  python3 run_batch_test.py worker01 2024-03-20T22:00
 
 
+# Repositorio Lambda
+Diseño e Implementación de una Arquitectura Lambda utilizando Herramientas de Big Data
+## Introducción
+En primer lugar, una arquitectura Lambda es una arquitectura de procesamiento de datos diseñada para el procesamiento por lotes y en tiempo real creada para superar el teorema CAP. Se divide en tres capas diferentes:
+<ul>
+  <li><b>Capa de Lotes</b>: Capa orientada al procesamiento de grandes volúmenes de datos. Alta latencia y generalmente utilizada con datos históricos</li>
+  <li><b>Capa de Velocidad</b>: Procesamiento en tiempo real de flujos de datos. Baja latencia que proporciona respuestas inmediatas y resultados actualizados </li>
+  <li><b>Capa de Servicio</b>: Capa que muestra los resultados del procesamiento por lotes y en tiempo real </li>
+</ul>
+
+![imagen](https://github.com/IgnacioHernandezBas/Lambda-Repo/assets/91118338/cedfb0dd-ad0f-4ecb-89a2-45ffacee2c00)
+
+## Diseño 
+Para implementar esta arquitectura es importante conocer qué herramientas son las más adecuadas para la tarea deseada. Es necesario trabajar en un clúster porque la arquitectura va a procesar grandes volúmenes de datos, por lo que temas como escalabilidad, tolerancia a fallos, utilización de recursos y procesamiento paralelo son clave para recrear una arquitectura de procesamiento de datos realista que podría ser utilizada en aplicaciones reales.
+
+![imagen](https://github.com/IgnacioHernandezBas/Lambda-Repo/assets/91118338/edd2b6dc-ce65-4c25-b7bc-90c50db4c99b)
+
++ Collectd es un demonio de Unix que transferirá los datos relacionados con el rendimiento de los nodos del clúster, utilizando Kafka los datos serán ingestados en ambas capas </li> 
+
++ Se ha elegido Spark y Spark Streaming para el procesamiento por lotes y en tiempo real respectivamente, podrían haberse elegido otras opciones, pero el uso de estas tecnologías reduce la complejidad y el costo temporal de tener que configurar y configurar dos herramientas de procesamiento diferentes.
+
++ Para el almacenamiento de datos, se ha elegido Cassandra para almacenar los datos procesados en tiempo real y HDFS para las vistas por lotes, HIVE será necesario para consultar los datos almacenados en HDFS.
+
+## Implementación
+
+### Ingestión
+Los datos de collectd estarán disponibles para ser leídos por las capas de procesamiento utilizando un tema de kafka. Aquí hay un ejemplo:
+
+![imagen](https://github.com/IgnacioHernandezBas/Lambda-Repo/assets/91118338/82800bee-abe4-4216-ae09-cfe1d3abcebf)
+
+Esta información representa la salida de collectd con respecto a un nodo del clúster (worker01) y datos adicionales como el uso de la CPU (métrica) y la marca de tiempo. Las capas de procesamiento se encargarán de utilizar estos datos para asignar el grupo correspondiente del nodo del clúster de manera eficiente y su turno dependiendo de su marca de tiempo. Esta asignación es arbitraria y está definida en otro tema llamado "especificaciones" con los grupos de nodos y turnos:
+
+![imagen](https://github.com/IgnacioHernandezBas/Lambda-Repo/assets/91118338/dd6270a9-7f2e-4aa4-bb28-a4b4e86434de)
+
+### Procesamiento
+
++ Script para procesamiento en tiempo real: real_time_proc.py
+  
++ Script para procesamiento por lotes: batch_proc.py (este script es un ejemplo que registra solo un día de datos por propósitos de baja latencia)
+
+Ejemplo de las asignaciones resultantes para un nodo:
+
+![imagen](https://github.com/IgnacioHernandezBas/Lambda-Repo/assets/91118338/212be37d-f0e6-4762-9bcf-018db4b580da)
+
+*** Ten en cuenta que la etapa de procesamiento podría ser más compleja, pero el objetivo principal de este proyecto es crear una arquitectura funcional que interconecte las múltiples herramientas de Big Data correctamente 
+
+
+### Lectura y pruebas desde la capa de servicio
+
+Recupera los datos almacenados previamente de las bases de datos respectivas y muestra las asignaciones realizadas para un nodo específico y fecha
+
++ Comando de ejecución para pruebas en tiempo real: python3 run_rt_test.py worker01 2024-03-20T22:00
+  
++ Script para procesamiento por lotes:  python3 run_batch_test.py worker01 2024-03-20T22:00
+
+
+
+
 
 
 
